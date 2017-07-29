@@ -1,0 +1,79 @@
+<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.yonatanbitton.runnerproject.MapsActivity">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:text="Map Type"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:paddingRight="10dp"
+        android:onClick="changeMapType"
+        android:id="@+id/mapTypeButton"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|top"
+        android:text="Start!"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:paddingRight="10dp"
+        android:onClick="finishedRoute_Start"
+        android:id="@+id/startButton"
+
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:id="@+id/time"
+        android:textColor="#FFFF0000"
+        android:textStyle="bold|italic"
+        android:visibility="invisible"
+        android:textSize="20dip"
+        android:layout_gravity="right|top"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="10dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:id="@+id/dist"
+        android:textColor="#FFFF0000"
+        android:textStyle="bold|italic"
+        android:visibility="invisible"
+        android:textSize="20dip"
+        android:layout_gravity="left|bottom"
+        android:layout_marginBottom="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="10dp"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next Point (m)"
+        android:id="@+id/distText"
+        android:textColor="#FFFF0000"
+        android:textStyle="bold|italic"
+        android:visibility="invisible"
+        android:textSize="20dip"
+        android:layout_gravity="left|bottom"
+        android:layout_marginBottom="60dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="10dp"
+        />
+
+</fragment>

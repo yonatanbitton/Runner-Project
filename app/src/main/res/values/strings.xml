@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Runner</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_show_last_route">Map</string>
+</resources>
