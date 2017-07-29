@@ -39,7 +39,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     long count=0;
     LatLng currentPoint;
     LatLng initPos=null;
-    int currentIndex = 0;
+    int currentIndex = 1;
     boolean finishFlag=false;
 
     /**
@@ -206,7 +206,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @return void
      */
     public void finishedRoute_Start(View v) {
-        if (points.size() == 0) {
+        if (points.size() == 1) {
             Toast.makeText(getApplicationContext(), "Needs minimum 1 point", Toast.LENGTH_SHORT).show();
         } else {
             maxNumOfPoints = points.size();
