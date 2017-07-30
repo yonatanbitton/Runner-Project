@@ -206,6 +206,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @return void
      */
     public void finishedRoute_Start(View v) {
+        //startFlag = true;
         if (points.size() == 1) {
             Toast.makeText(getApplicationContext(), "Needs minimum 1 point", Toast.LENGTH_SHORT).show();
         } else {
@@ -220,7 +221,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             final TextView distanceToNextPoint = (TextView) findViewById(R.id.dist);
             final TextView distTxt = (TextView) findViewById(R.id.distText);
 
-            //button.setVisibility(View.INVISIBLE);
             time.setVisibility(View.VISIBLE);
             distanceToNextPoint.setVisibility(View.VISIBLE);
             distTxt.setVisibility(View.VISIBLE);
@@ -241,34 +241,60 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     count++;
                                     String convertedTime = getFormattedTimeString(count);
                                     time.setText(convertedTime);
-                                    LatLng nextPoint = points.get(currentIndex); /* Get the next checkpoint */
-                                    int nextDistance = (int)getDistanceFrom(nextPoint.latitude, nextPoint.longitude); /* Caclculate the distance to it from the current place */
-                                    String nextDistStr = Integer.toString(nextDistance);
-                                    distanceToNextPoint.setText(nextDistStr); /* Show it on the textview */
-
-                                    if (nextDistance < 30 && finishFlag == false) { /* If the nextDistance<30 - Next checkpoint was achieved. */
-                                        Toast.makeText(getApplicationContext(), "CHECKPOINT REACHED!", Toast.LENGTH_SHORT).show();
-                                        if (currentIndex < points.size() - 1) currentIndex++; /* Advance if possible  */
-
-                                        else if (currentIndex == points.size() - 1 && finishFlag == false) { /* Finish operations*/
-                                            finishFlag = true;
-                                            distanceToNextPoint.setVisibility(View.INVISIBLE);
-                                            distTxt.setVisibility(View.INVISIBLE);
-                                            String convertedFinishTime = getFormattedTimeString(count + 1);
-                                            Toast.makeText(getApplicationContext(), "Congratulations! Your time is: " + convertedFinishTime, Toast.LENGTH_LONG).show();
-                                            writeResultToFile(convertedFinishTime);
-                                            Thread.currentThread().interrupt();
-                                        }
-                                    }
                                 }
                             });
                         }
                     } catch (InterruptedException e) {
-                         e.printStackTrace();
+                        e.printStackTrace();
                     }
                 }
             };
             t.start();
+            
+            Thread updaterThread = new Thread() {
+                /*  The run function for this thread.
+                 * while not interrupted nor finished, every 1 second, it will make clock++, show it on the TextView, and update the distance to the next checkpoint.
+                 */
+                @Override
+                public void run() {
+                    try {
+                        while (!isInterrupted() && finishFlag == false) {
+                            Thread.sleep(1000);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    handleNextPoint(distanceToNextPoint, distTxt);
+                                }
+                            });
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            updaterThread.start();
+        }
+    }
+
+    public void handleNextPoint(TextView distanceToNextPoint, TextView distTxt){
+        LatLng nextPoint = points.get(currentIndex); /* Get the next checkpoint */
+        int nextDistance = (int)getDistanceFrom(nextPoint.latitude, nextPoint.longitude); /* Caclculate the distance to it from the current place */
+        String nextDistStr = Integer.toString(nextDistance);
+        distanceToNextPoint.setText(nextDistStr); /* Show it on the textview */
+
+        if (nextDistance < 30 && finishFlag == false) { /* If the nextDistance<30 - Next checkpoint was achieved. */
+            Toast.makeText(getApplicationContext(), "CHECKPOINT REACHED!", Toast.LENGTH_SHORT).show();
+            if (currentIndex < points.size() - 1) currentIndex++; /* Advance if possible  */
+
+            else if (currentIndex == points.size() - 1 && finishFlag == false) { /* Finish operations*/
+                finishFlag = true;
+                distanceToNextPoint.setVisibility(View.INVISIBLE);
+                distTxt.setVisibility(View.INVISIBLE);
+                String convertedFinishTime = getFormattedTimeString(count + 1);
+                Toast.makeText(getApplicationContext(), "Congratulations! Your time is: " + convertedFinishTime, Toast.LENGTH_LONG).show();
+                writeResultToFile(convertedFinishTime);
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
