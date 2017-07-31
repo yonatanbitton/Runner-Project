@@ -28,12 +28,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
-
     final private String TAG = "MapsJon";
     private GoogleMap mMap;
-    private ArrayList<LatLng> points = new ArrayList<LatLng>();
+    private ArrayList<LatLng> points = new ArrayList<>();
+    final ExecutorService executor = Executors.newFixedThreadPool(2);
     private int maxNumOfPoints=1000;
     LocationManager locationManager; // needs it to access my loc
     long count=0;
@@ -92,9 +94,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (initPos==null) {
                             initPos = latLng;
                             points.add(initPos); /* Adding initPos to points*/
-                            /*Toast.makeText(getApplicationContext(), "initPoint added to points", Toast.LENGTH_SHORT).show();
-                            String sizeStr = Integer.toString(points.size());
-                            Toast.makeText(getApplicationContext(), "size is: " + sizeStr, Toast.LENGTH_LONG).show();*/
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -133,9 +132,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (initPos==null) {
                             initPos = latLng;
                             points.add(initPos); /* Adding initPos to points*/
-                            /*Toast.makeText(getApplicationContext(), "initPoint added to points", Toast.LENGTH_SHORT).show();
-                            String sizeStr = Integer.toString(points.size());
-                            Toast.makeText(getApplicationContext(), "size is: " + sizeStr, Toast.LENGTH_LONG).show();*/
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -155,6 +151,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Toast.makeText(getApplicationContext(), "Enter route, click start button when ready.", Toast.LENGTH_LONG).show();
         Log.d(TAG, "on create done");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        executor.shutdown(); /* Shutdown the threads that may be still running */ 
     }
 
     /**
@@ -225,14 +227,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             distanceToNextPoint.setVisibility(View.VISIBLE);
             distTxt.setVisibility(View.VISIBLE);
 
-            Thread t = new Thread() {
-                /* The run function for this thread.
-                * while not interrupted nor finished, every 1 second, it will make clock++, show it on the TextView, and update the distance to the next checkpoint.
-                */
+            Runnable timeUpdate = new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        while (!isInterrupted() && finishFlag == false) {
+                        while (!Thread.currentThread().isInterrupted() && finishFlag == false) {
                             Thread.sleep(1000);
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -249,16 +248,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
             };
-            t.start();
-            
-            Thread updaterThread = new Thread() {
-                /*  The run function for this thread.
-                 * while not interrupted nor finished, every 1 second, it will make clock++, show it on the TextView, and update the distance to the next checkpoint.
-                 */
+
+            Runnable distanceUpdate = new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        while (!isInterrupted() && finishFlag == false) {
+                        while (!Thread.currentThread().isInterrupted() && finishFlag == false) {
                             Thread.sleep(1000);
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -272,7 +267,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 }
             };
-            updaterThread.start();
+
+            executor.execute(timeUpdate);
+            executor.execute(distanceUpdate);
+
         }
     }
 
@@ -293,11 +291,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String convertedFinishTime = getFormattedTimeString(count + 1);
                 Toast.makeText(getApplicationContext(), "Congratulations! Your time is: " + convertedFinishTime, Toast.LENGTH_LONG).show();
                 writeResultToFile(convertedFinishTime);
-                Thread.currentThread().interrupt();
+                executor.shutdown(); /* Shutdown the threads in case of finishing the route successfully */ 
             }
         }
     }
-
 
     /**
      * This function Writes the name, age, finish time, points into db file as json.
@@ -321,12 +318,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             result.put("lats",latsJson);
             result.put("longs",longsJson);
 
-            /* DEBUG */
-            String sizeStr = Integer.toString(points.size());
-            //Toast.makeText(getApplicationContext(), "size is: " + sizeStr, Toast.LENGTH_LONG).show();
-
             String parsed = result.toString();
-            //Toast.makeText(getApplicationContext(), "wrote this: " + parsed, Toast.LENGTH_LONG).show();
             FileOutputStream streamer = openFileOutput("db.json", MODE_PRIVATE);
             streamer.write(parsed.getBytes());
             streamer.close();
@@ -379,3 +371,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return timeStr;
     }
 }
+
